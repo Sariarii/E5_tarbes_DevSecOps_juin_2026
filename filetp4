@@ -2,7 +2,9 @@ pipeline {
 
     agent any
 
-
+    tools {
+        maven 'maven3'
+    }
     /*
     Déclaration des paramètres.
     Ils apparaîtront dans Jenkins avec l'option :
