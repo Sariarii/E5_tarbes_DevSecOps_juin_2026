@@ -17,20 +17,17 @@ pipeline {
             description: 'Please tell me your name'
         )
 
-
         text(
             name: 'DESC',
             defaultValue: 'Pipeline CI/CD Jenkins GitHub',
             description: 'Description du Job'
         )
 
-
         booleanParam(
             name: 'SKIP_TEST',
             defaultValue: false,
             description: 'Skip running Tests ?'
         )
-
 
         choice(
             name: 'BRANCH',
@@ -42,7 +39,6 @@ pipeline {
             description: 'Choose Git branch'
         )
 
-
         password(
             name: 'SONAR_SERVER_PWD',
             description: 'Enter SONAR password'
@@ -53,18 +49,14 @@ pipeline {
 
     environment {
 
-        APP_NAME = "web-app"
-
+        APP_NAME  = "web-app"
         DOCKER_IMAGE = "mydockerhub/web-app"
-
         SONAR_URL = "http://localhost:9000"
 
     }
 
 
-
     stages {
-
 
 
         /*
@@ -92,63 +84,43 @@ pipeline {
         }
 
 
-
-
-
         /*
         Récupération du projet depuis Github
         */
 
-
         stage('02 - CHECKOUT GITHUB') {
-
 
             steps {
 
-
                 echo "Downloading source code..."
 
-
                 git branch: "${params.BRANCH}",
-                url: 'https://github.com/Sariarii/E5_tarbes_DevSecOps_juin_2026.git'
-
+                    url: 'https://github.com/Sariarii/E5_tarbes_DevSecOps_juin_2026.git'
 
             }
 
         }
-
-
-
 
 
         /*
         Compilation de l'application
+        FIX : utilisation de bat au lieu de sh (Jenkins sur Windows)
+        FIX : les commandes bat ne supportent pas la syntaxe shell Unix
         */
-
 
         stage('03 - BUILD APPLICATION') {
 
-
             steps {
-
 
                 echo "Building Application"
 
+                bat "echo Compilation en cours..."
 
-                bat """
-                echo Compilation en cours...
-
-                mvn clean package
-
-                """
-
+                bat "mvn clean package"
 
             }
 
         }
-
-
-
 
 
         /*
@@ -156,149 +128,91 @@ pipeline {
         Le stage sera ignoré si SKIP_TEST=true
         */
 
-
         stage('04 - RUN TESTS') {
-
 
             when {
 
                 expression {
-
                     return params.SKIP_TEST == false
-
                 }
 
             }
 
-
-
             steps {
-
 
                 echo "Running Tests"
 
-
-                bat """
-
-                mvn test
-
-                """
-
+                bat "mvn test"
 
             }
 
-
         }
-
-
-
-
 
 
         /*
         Analyse qualité SonarQube
+        FIX : les arguments mvn sur une seule ligne (pas de \ sous bat)
         */
-
 
         stage('05 - SONARQUBE ANALYSIS') {
 
-
             steps {
-
 
                 echo "Scanning source code"
 
-
-                bat """
-
-                mvn sonar:sonar \\
-                -Dsonar.host.url=${SONAR_URL} \\
-                -Dsonar.login=${params.SONAR_SERVER_PWD}
-
-
-                """
-
+                bat "mvn sonar:sonar -Dsonar.host.url=${SONAR_URL} -Dsonar.login=${params.SONAR_SERVER_PWD}"
 
             }
 
         }
-
-
-
-
-
 
 
         /*
         Création image Docker
         */
 
-
         stage('06 - DOCKER BUILD') {
-
 
             steps {
 
-
                 echo "Creating Docker image"
 
-
-                bat """
-
-                docker build -t ${DOCKER_IMAGE}:latest .
-
-                """
+                bat "docker build -t ${DOCKER_IMAGE}:latest ."
 
             }
 
-
         }
-
-
-
-
 
 
         /*
         Déploiement
+        FIX : || true remplacé par & exit 0 (syntaxe Windows)
+        FIX : \ de continuation remplacé par ^ (syntaxe Windows)
+              ou commandes séparées
         */
-
 
         stage('07 - DEPLOY') {
 
-
             steps {
-
 
                 echo "Deploying Application"
 
+                // Arrêt et suppression du conteneur existant (sans échouer si absent)
+                bat "docker stop ${APP_NAME} & exit 0"
+                bat "docker rm ${APP_NAME} & exit 0"
 
-                bat """
-
-                docker stop ${APP_NAME} || true
-
-                docker rm ${APP_NAME} || true
-
-
-                docker run -d \
-                --name ${APP_NAME} \
-                -p 8080:8080 \
-                ${DOCKER_IMAGE}:latest
-
-
-                """
-
+                // Lancement du nouveau conteneur
+                // FIX : continuation de ligne Windows avec ^
+                bat "docker run -d ^" +
+                    " --name ${APP_NAME} ^" +
+                    " -p 8080:8080 ^" +
+                    " ${DOCKER_IMAGE}:latest"
 
             }
 
-
         }
 
-
     }
-
-
-
 
 
     /*
@@ -307,9 +221,7 @@ pipeline {
 
     post {
 
-
         success {
-
 
             echo """
 
@@ -325,10 +237,7 @@ pipeline {
 
         }
 
-
-
         failure {
-
 
             echo """
 
@@ -344,8 +253,6 @@ pipeline {
 
         }
 
-
     }
-
 
 }
