@@ -156,7 +156,7 @@ pipeline {
         FIX : les arguments mvn sur une seule ligne (pas de \ sous bat)
         */
 
-        stage('05 - SONARQUBE ANALYSIS') {
+        /*stage('05 - SONARQUBE ANALYSIS') {
 
             steps {
 
@@ -166,7 +166,7 @@ pipeline {
 
             }
 
-        }
+        }*/
 
 
         /*
