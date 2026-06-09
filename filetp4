@@ -184,6 +184,14 @@ pipeline {
             }
 
         }
+        stage('07 - SECURITY SCAN TRIVY') {
+    steps {
+        echo "Scanning Docker image for vulnerabilities"
+
+        // Scan de l'image avec Trivy - affiche uniquement HIGH et CRITICAL
+        bat "trivy image --severity HIGH,CRITICAL ${DOCKER_IMAGE}:latest"
+    }
+}
 
 
         /*
