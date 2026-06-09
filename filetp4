@@ -54,7 +54,7 @@ pipeline {
         APP_NAME  = "web-app"
         DOCKER_IMAGE = "mydockerhub/web-app"
         SONAR_URL = "http://localhost:9000"
-
+    
     }
 
 
@@ -207,7 +207,7 @@ pipeline {
                 // FIX : continuation de ligne Windows avec ^
                 bat "docker run -d ^" +
                     " --name ${APP_NAME} ^" +
-                    " -p 8080:8080 ^" +
+                    " -p 8081:8080 ^" +
                     " ${DOCKER_IMAGE}:latest"
 
             }
