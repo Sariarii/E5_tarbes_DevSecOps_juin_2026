@@ -54,7 +54,7 @@ pipeline {
         APP_NAME  = "web-app"
         DOCKER_IMAGE = "mydockerhub/web-app"
         SONAR_URL = "http://localhost:9000"
-    
+        SNYK_EXE = "C:\\ProgramData\\chocolatey\\bin\\snyk.exe"
     }
 
 
@@ -201,7 +201,7 @@ pipeline {
               ou commandes séparées
         */
 
-        stage('07 - DEPLOY') {
+        stage('08 - DEPLOY') {
 
             steps {
 
@@ -223,6 +223,42 @@ pipeline {
         }
 
     }
+
+stage('09 - SNYK CONTAINER SCAN') { 
+
+    when { 
+
+        expression { 
+
+            return params.SKIP_SNYK == false 
+
+        } 
+
+    } 
+
+    steps { 
+
+        echo "Analyse de l'image Docker avec Snyk - mode non bloquant" 
+
+ 
+
+        withCredentials([string(credentialsId: 'snyk-token', variable: 'SNYK_TOKEN')]) { 
+
+            bat """ 
+
+            "%SNYK_EXE%" auth %SNYK_TOKEN% 
+
+            "%SNYK_EXE%" container test %DOCKER_IMAGE%:latest ^ 
+
+            --severity-threshold=high || exit /b 0 
+
+            """ 
+
+        } 
+
+    } 
+
+}  
 
 
     /*
