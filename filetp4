@@ -222,9 +222,7 @@ pipeline {
 
         }
 
-    }
-
-stage('09 - SNYK CONTAINER SCAN') { 
+    stage('09 - SNYK CONTAINER SCAN') { 
 
     when { 
 
@@ -259,6 +257,9 @@ stage('09 - SNYK CONTAINER SCAN') {
     } 
 
 }  
+
+    }
+
 
 
     /*
